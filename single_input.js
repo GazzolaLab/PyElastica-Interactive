@@ -7,6 +7,7 @@
   window.time = 0;
   window.rod_list = [];
   window.mesh_list = [];
+  window.sphere_list = [];
   window.sliderDiv = document.getElementById("time");
   document.getElementById('slidercss').style.display = "block";
   document.getElementById('buttoncss').style.display = "flex";

@@ -52,7 +52,7 @@ window.directionalLight = new THREE.DirectionalLight(0xffffff, 3)
 window.directionalLight.position.set(0, 0, 1);
 window.scene.add(window.directionalLight)
 
-window.ambientLight = new THREE.AmbientLight(0xffffff, 1);
+window.ambientLight = new THREE.AmbientLight(0xffffff, 0);
 window.window.scene.add(window.ambientLight);
 
 

@@ -30,6 +30,22 @@ window.load_rod = function load_rod(scene,positions,radius,id,rod_material,eleme
   }
 }
 
+
+window.load_sphere = function load_sphere(scene,position,radius,id,material){
+  const geometry = new THREE.SphereGeometry( radius, 64, 32 ); 
+  let sphere = new THREE.Mesh( geometry, material );
+    sphere.name = id;
+    sphere.position.set(position[0],position[1],position[2]);
+    sphere.castShadow = false;
+    sphere.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+    scene.add(sphere);
+  }
+
 window.update_rod = function update_rod(scene,time,positions,radius,id) {
   for (let i=0;i<radius[0].length;i++){
     var current_sphere = scene.getObjectByName(id+"_"+String(i));
@@ -72,6 +88,7 @@ window.load_mesh = function load_mesh(scene,mesh_path,scale,orientation,position
           texture.wrapS = THREE.RepeatWrapping;
           texture.wrapT = THREE.RepeatWrapping;
           texture.repeat.set( 1, 1 );
+          texture.encoding = THREE.sRGBEncoding;
           const meshMaterial = new THREE.MeshStandardMaterial({
           map: texture,
           });
@@ -126,12 +143,17 @@ window.load_simulation = function load_simulation(scene,simulation_file){
   n_timesteps = simulation_file["n_timesteps"]
   timestep = simulation_file["timestep"]
   window.sliderDiv.max = n_timesteps-1;
-  for (let i=0;i<rod_list.length;i++){
-    for (let j=0;j<rod_list[i].radius[0].length;j++){
+  for (let i=0;i<window.rod_list.length;i++){
+    for (let j=0;j<window.rod_list[i].radius[0].length;j++){
       var selectedObject = scene.getObjectByName(window.rod_list[i].id+"_"+String(j));
       scene.remove( selectedObject );
     }
     window.rod_list = [];
+  }
+  for (let i=0;i<window.sphere_list.length;i++){
+    var selectedObject = scene.getObjectByName(window.sphere_list[i].id);
+    scene.remove( selectedObject );
+    window.sphere_list = [];
   }
   for (let i=0;i<mesh_list.length;i++){
     var selectedMesh = scene.getObjectByName(window.mesh_list[i].id);
@@ -224,9 +246,9 @@ window.load_simulation = function load_simulation(scene,simulation_file){
     if (simulation_objects[i].includes("rod")){
       let current_rod = simulation_file[simulation_objects[i]];
       let rod_material = new THREE.MeshPhysicalMaterial({})
-      rod_material.color = new THREE.Color(0x8f86cc)
+      rod_material.color = new THREE.Color(current_rod.color)
       let element_material = new THREE.MeshPhysicalMaterial({})
-      element_material.color = new THREE.Color(0x8f86cc)
+      element_material.color = new THREE.Color(current_rod.color)
       // rod_material.ior = 1
       // rod_material.thickness = 10.0
       // rod_material.reflectivity = 1
@@ -266,7 +288,7 @@ window.load_simulation = function load_simulation(scene,simulation_file){
       rodColorInputLabel.style.display = "none";
       rodColorInputLabel.classList.add("content");
       rodColorInput.setAttribute("type", "color");
-      rodColorInput.setAttribute("value", "#8f86cc");
+      rodColorInput.setAttribute("value", current_rod.color);
       rodColorInput.setAttribute("id", "rod_color"+current_rod.id)
       rodColorInput.classList.add("content");
       rodColorInput.addEventListener("change", event => {
@@ -280,6 +302,29 @@ window.load_simulation = function load_simulation(scene,simulation_file){
       addCollapsibleElement(current_rod.id+" (Rod)",content_list)
       window.rod_list.push(current_rod)
       load_rod(scene,current_rod.positions,current_rod.radius,current_rod.id,rod_material,element_material,current_rod.n_elem)
+    }
+    if (simulation_objects[i].includes("sphere")){
+      let current_sphere = simulation_file[simulation_objects[i]];
+      let sphere_material = new THREE.MeshPhysicalMaterial({})
+      sphere_material.color = new THREE.Color(current_sphere.color)
+      const sphereColorInput = document.createElement("input");
+      const sphereColorInputLabel = document.createElement("label");
+      sphereColorInputLabel.setAttribute("for", "sphere_color"+current_sphere.id)
+      sphereColorInputLabel.textContent = "Sphere Color";
+      sphereColorInputLabel.style.display = "none";
+      sphereColorInputLabel.classList.add("content");
+      sphereColorInput.setAttribute("type", "color");
+      sphereColorInput.setAttribute("value", current_sphere.color);
+      sphereColorInput.setAttribute("id", "sphere_color"+current_sphere.id)
+      sphereColorInput.classList.add("content");
+      sphereColorInput.addEventListener("change", event => {
+        var sphereColor = sphereColorInput.value;
+        sphere_material.color.set(sphereColor);
+      });
+      const content_list = [sphereColorInputLabel,sphereColorInput]
+      addCollapsibleElement(current_sphere.id+" (Sphere)",content_list)
+      window.sphere_list.push(current_sphere)
+      load_sphere(scene,current_sphere.position,current_sphere.radius,current_sphere.id,sphere_material)
     }
   }
 }
